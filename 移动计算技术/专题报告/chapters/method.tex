@@ -1,0 +1,140 @@
+\section{方法}
+
+这一部分将介绍联邦学习技术一些方法的分类，包括权重平均的联邦学习方法和个性化的联邦学习方法。
+
+\subsection{权重平均的联邦学习方法}
+
+权重平均的联邦学习方法是指在联邦学习过程中，中心节点维护一个全局模型，每个参与方在本地训练模型，然后将本地模型上传到中心节点，中心节点对本地模型进行聚合，得到全局模型。下面介绍一些典型的权重平均的联邦学习方法。
+
+\subsubsection{Federated Averaging (FedAvg)}
+
+FedAvg\cite{mcmahan2017communication}是一个经典的联邦学习方法，它的基本思想是将本地模型的参数上传到服务器，服务器计算所有模型参数的平均值，然后将这个平均值广播回所有本地设备。这个过程可以迭代多次，直到收敛。FedAvg的过程可以表示为算法\ref{alg:fedavg}。
+
+\begin{algorithm}[htbp]
+\caption{FedAvg}
+\label{alg:fedavg}
+\begin{algorithmic}[1]
+    \State 初始化 $W$
+    \For{$t=1,2,\ldots,T$}
+        \State $W_k \leftarrow arg\min_W \mathcal{L}(W;D_k)$ for $k=1,2,\ldots,K$
+        \State $W \leftarrow \frac{1}{K}\sum_{k=1}^K W_k$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+其中，$W_k$表示第$k$个参与方的本地模型，$\mathcal{L}(W;D_k)$表示本地模型在本地数据集$D_k$上的损失函数。
+
+\subsubsection{Federated Proximal (FedProx)}
+
+当数据分布不均匀时，FedAvg可能会导致一些参与方的模型性能下降。为了解决这个问题，研究者提出了FedProx\cite{li2020federated}方法。FedProx的基本思想是在FedAvg的基础上增加一个正则项，用于约束本地模型和全局模型的差异。FedProx的过程可以表示为算法\ref{alg:fedprox}。
+
+\begin{algorithm}[htbp]
+\caption{FedProx}
+\label{alg:fedprox}
+\begin{algorithmic}[1]
+    \State 初始化 $W_0$
+    \For{$t=1,2,\ldots,T$}
+        \State $W_t^k \leftarrow arg\min_w \mathcal{L}(W_t;D_k) + \frac{\lambda}{2}\|W-W_{t-1}\|_2^2$ for $k=1,2,\ldots,K$
+        \State $W_t \leftarrow \frac{1}{K}\sum_{k=1}^K W_t^k$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+其中，$W_t^k$表示第$t$轮训练的第$k$个参与方的权重。$\lambda$是一个超参数，用于控制正则项的权重。正则项$\frac{\lambda}{2}\|w-w_{t-1}\|_2^2$用于约束本地模型和全局模型的差异，从而减小模型性能的下降。
+
+\subsubsection{Federated Matched Averaging (FedMA)}
+
+FedMA\cite{wang2020federated}是一个基于匹配的联邦学习方法，它的基本思想是逐层匹配本地模型和全局模型的参数。首先，服务器收集所有本地模型的第一层权重，聚合后广播回所有本地设备。然后，本地设备冻结第一层权重，训练第二层权重，上传到服务器，服务器聚合后广播回所有本地设备。这一过程不断重复，直到所有层被训练。FedMA的过程可以表示为算法\ref{alg:fedma}。
+
+\begin{algorithm}[htbp]
+\caption{FedMA}
+\label{alg:fedma}
+\begin{algorithmic}[1]
+    \State 初始化 $W=\{w^{(1)},\dots,W^{(N)}\}$
+    \State $n=1$
+    \While{$n\le N$}
+        \State $\{\Pi_k\}_{k=1}^K=\text{BBP-MAP}(\{W_k^{(n)}\}_{j=1}^J)$
+        \State $W^{(n)}\leftarrow \frac{1}{K}\sum_{k=1}^K W_k^{(n)}\Pi_j^T$
+        \For{$k=1,2,\dots,K$}
+            \State $W_{k}^{(n+1)}\leftarrow \Pi_{k}W_{k}^{(n+1)}$
+            \State $W_{k}^{(n+1)}\leftarrow arg\min_W \mathcal{L}(W;D_k)$ with $W^{(n)}$ frozen
+        \EndFor
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+其中，$W^{(n)}$表示全局模型第$n$层的权重，$W_k^{(n)}$表示第$k$个参与方的第$n$层权重。$\text{BBP-MAP}$是一个用于匹配本地模型和全局模型的函数。$\Pi_k$是一个匹配矩阵，用于匹配本地模型和全局模型的参数。
+
+\subsubsection{总结}
+
+总的来说，权重平均的联邦学习方法是一种简单有效的联邦学习方法，它的基本思想是在本地训练模型，然后上传到服务器，服务器聚合所有模型的参数，得到全局模型。这种方法的优点是非常简单，然而它也存在许多问题。例如，这种方法的同步频率和性能难以平衡，同步频率越高时，性能越好，但通信开销也越大。
+
+\subsection{个性化的联邦学习方法}
+
+个性化的联邦学习方法是指在联邦学习过程中，为每个参与方训练一个个性化的模型，从而适应不同的数据和需求。下面介绍一些典型的个性化的联邦学习方法。
+
+\subsubsection{Federated Learning with Personalization Layers (FedPer)}
+
+FedPer\cite{arivazhagan2019federated}是一个基于个性化的联邦学习方法，它的基本思想是在全局模型中增加一个个性化层，用于适应不同的参与方。FedPer的过程可以表示为算法\ref{alg:fedper}。
+
+\begin{algorithm}[htbp]
+\caption{FedPer}
+\label{alg:fedper}
+\begin{algorithmic}[1]
+    \State 初始化 $W,W_{P_k}$
+    \For{$t=1,2,\ldots,T$}
+        \State $(W_k,W_{P_k}) \leftarrow arg\min_W \mathcal{L}(W,W_{P_k};D_k)$ for $k=1,2,\ldots,K$
+        \State $W \leftarrow \frac{1}{K}\sum_{k=1}^K W_k$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+其中，$W_{P_k}$表示第$k$个参与方的个性化层。$\mathcal{L}(W,W_{P_k};D_k)$表示基本层和个性化层组合后的第$k$个参与方模型在本地数据集$D_k$上的损失函数。
+
+\subsubsection{Federated Multi-Task Learning (MOCHA)}
+
+MOCHA\cite{smith2017federated}是一个基于多任务学习的联邦学习方法，它的基本思想是在本地训练模型时，同时训练多个任务，从而提高模型的泛化能力。MOCHA的过程可以表示为算法\ref{alg:mocha}。
+
+\begin{algorithm}[htbp]
+\caption{MOCHA}
+\label{alg:mocha}
+\begin{algorithmic}[1]
+    \State 初始化 $W$
+    \For{$t=1,2,\ldots,T$}
+        \State $W_k \leftarrow arg\min_W \mathcal{L}(W;D_k)+\mathcal{R}(W,\Omega)$ for $k=1,2,\ldots,K$
+        \State $W \leftarrow \frac{1}{K}\sum_{k=1}^K W_k$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+其中，$\mathcal{R}(W,\Omega)=\lambda_1\text{tr}(W\Omega W^T)+\lambda_2\| W\|^2$。$\Omega$是一个可学习矩阵，$\lambda_1,\lambda_2$是2个正则化系数的权重。正则项$\mathcal{R}(W,\Omega)$起到约束不相关任务之间共享信息的作用。
+
+\subsubsection{Personalized Federated HyperNetworks (pFedHN)}
+
+pFedHN\cite{shamsian2021personalized}是一个基于超网络的个性化联邦学习方法，它的基本思想是在全局模型中增加一个超网络，用于生成个性化模型的参数。通过超网络，可以为每个参与方生成独立且多样的个性化的模型。pFedHN的过程可以表示为算法\ref{alg:pfedhn}。
+
+\begin{algorithm}[htbp]
+\caption{pFedHN}
+\label{alg:pfedhn}
+\begin{algorithmic}[1]
+    \State 初始化 $W$，$v_k,k=1,2,\dots,K$
+    \For{$t=1,2,\dots,T$}
+        \State sample $k\in[1,2,\dots,K]$
+        \State $W_k\leftarrow h(v_k;\phi)$ and $\tilde{W}_k\leftarrow W_k$
+        \State $\tilde{W}_k \leftarrow arg\min_W \mathcal{L}(W;D_k)$
+        \State $\Delta W_k=\tilde{W}_k-W_k$
+        \State $\phi\leftarrow \phi-\alpha\nabla_\phi  W_k^T\Delta W_k$
+        \State $v_k\leftarrow v_k-\alpha\nabla_{v_k}\phi^T\nabla_\phi W_k^T\Delta W_k$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+其中，$h(v_k;\phi)$是一个超网络，用于生成个性化模型的参数。$\phi$是超网络的参数，$v_k$是超网络中每个参与者的可学习特征。
+
+\subsubsection{其他个性化的联邦学习方法}
+
+除了上述方法外，还有一些其他个性化的联邦学习方法，例如基于元学习的联邦学习方法\cite{fallah2020personalized}、基于迁移学习的联邦学习方法\cite{liu2020secure}、基于知识蒸馏的联邦学习方法\cite{zhu2021data}等。基于元学习的联邦学习方法通过学习一个元学习器，用于生成个性化的模型。具体来说，通过元学习找到一个初始共享模型，之后各个参与方可以通过对其自己的数据执行一步或几步梯度下降来轻松地适应其本地数据集。基于迁移学习的联邦学习方法通过迁移学习的思想，将全局模型迁移到参与方。基于知识蒸馏的联邦学习方法通过集合各个参与方的局部预测值，通过博弈理论为各个参与方分配软预测标签，从而提高模型的泛化能力。
+
+\subsubsection{总结}
+
+总的来说，个性化的联邦学习方法是一种有效的联邦学习方法，它的基本思想是为每个参与方训练一个个性化的模型，在相互协作，共同训练一个全局模型的同时，适应各个参与方不同的数据和需求。这种方法的优点是可以提高模型的泛化能力，适应不同的数据和需求，然而它也存在一些问题。例如，这种方法的计算复杂度较高，需要更多的计算资源。

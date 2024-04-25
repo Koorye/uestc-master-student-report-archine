@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage{amssymb}
+\usepackage[UTF8]{ctex}
+\usepackage{geometry}
+
+\geometry{a4paper, scale=0.8}
+
+\title{第一次线下作业}
+\date{2023年11月29日}
+\author{Koorye}
+
+\begin{document}
+\maketitle
+
+ResNet\_9blocks包含5个阶段$S_1,S_2,\dots,S_5$，其中$S_1,\dots,S_4$对原图或特征图进行下采样和特征提取，$S_5$将特征转换为概率分布。总过程可表示为公式\ref{eq:resnet}：
+
+\begin{equation}
+S=ResNet_9(I)=S_5(S_4(S_3(S_2(S_1(I))))),
+I\in\mathbb{R}^{H\times W\times 3},
+\label{eq:resnet}
+\end{equation}
+
+其中$I$表示原图，$H,W,3$分别是原图的高度、宽度和通道数。$S\in\mathbb{R}^{C}$表示每个类别的预测概率，其中$C$表示类别数。
+
+$S_1$阶段对原图进行下采样并转换为特征图，该阶段由卷积、批标准化和ReLU操作组成，如公式\ref{eq:s1}所示
+
+\begin{equation}
+H_1=S_1(I)=ReLU(BN(Conv(I, W^*))), H_1\in\mathbb{R}^{\frac H2\times\frac W2\times D},
+\label{eq:s1}
+\end{equation}
+
+其中$Conv$表示卷积操作，$W^*$是$S_1$中卷积核可学习的权重。$BN$表示批标准化操作，用于对张量进行归一化。$ReLU$表示ReLU激活函数。
+
+$S_2,S_3,S_4$阶段用于进一步提取特征，均由基本卷积块组成。基本卷积块有2种形式，如公式\ref{eq:bc1},\ref{eq:bc2}所示：
+
+\begin{equation}
+BC_1(\cdot, W^*)=Pool(ReLU(BN(Conv(\cdot, W^*)))),
+\label{eq:bc1}
+\end{equation}
+
+\begin{equation}
+BC_2(\cdot, W^*)=ReLU(BN(Conv(\cdot, W^*))),
+\label{eq:bc2}
+\end{equation}
+
+其中$Pool$表示池化操作。之后$S_2\cdots,S_4$可表示为公式\ref{eq:s2s4},\ref{eq:s3}：
+
+\begin{equation}
+H'=S_2(H)=S_4(H)=BC_1(H) + BC_2(BC_2(BC_1(H))),
+\label{eq:s2s4}
+\end{equation}
+
+\begin{equation}
+H'=S_3(H)=BC_1(H),
+\label{eq:s3}
+\end{equation}
+
+其中$S_2,S_4$由1个$BC1$和2个$BC2$组成，$S_3$仅有1个$BC_3$组成。
+
+最后，$S_5$阶段用于输出概率分布，由池化、展平操作和线性层组成，公式\ref{eq:s5}所示：
+
+\begin{equation}
+S=S_5(H_4)=LC(Flatten(Pool(H_4)),W^*),
+\label{eq:s5}
+\end{equation}
+
+其中$LC$表示线性层，$W^*$是线性层的可学习权重。$Flatten$表示展平操作，将多维张量展平为一维。经过上述操作，特征层被转换为概率，一次完整的$ResNet_9$推理过程结束。
+
+\end{document}

@@ -1,0 +1,16 @@
+@startuml
+
+left to right direction
+
+node 矢量 as v
+rectangle 矢量索引编排 as i
+database 矢量数据库 as db
+rectangle 矢量查询 as q
+rectangle 矢量后处理 as pp
+
+v --> i
+i --> db
+db --> q
+q --> pp
+
+@enduml

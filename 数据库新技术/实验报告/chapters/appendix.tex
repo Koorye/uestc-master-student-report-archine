@@ -1,0 +1,571 @@
+\begin{appendix}
+
+\section{代码示例}
+
+\textbf{app.py}
+
+\begin{lstlisting}
+import argparse
+import logging
+from rpyc import ThreadedServer
+
+from engine.service import DatabaseService
+
+
+if __name__ == '__main__':    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int)
+    parser.add_argument('--host-ports', type=str, nargs='+')
+    args = parser.parse_args()
+    port = args.port
+    host_ports = [hp.split(':') for hp in args.host_ports]
+    host_ports = [(host, int(port)) for host, port in host_ports]
+    
+    service = DatabaseService(port, host_ports)
+
+    port = args.port
+    print(f'Running app on port {port}...')
+    app = ThreadedServer(service, port=port, 
+                         protocol_config={'allow_all_attrs': True})
+    app.logger.setLevel(logging.WARN)
+    app.start()
+\end{lstlisting}
+
+\textbf{client.py}
+
+\begin{lstlisting}
+import argparse
+import rpyc
+
+from engine.utils import clear_screen
+
+
+logo = r''' 
+   _____ _                 _      _____  ____  
+  / ____(_)               | |    |  __ \|  _ \ 
+ | (___  _ _ __ ___  _ __ | | ___| |  | | |_) |
+  \___ \| | '_ ` _ \| '_ \| |/ _ \ |  | |  _ < 
+  ____) | | | | | | | |_) | |  __/ |__| | |_) |
+ |_____/|_|_| |_| |_| .__/|_|\___|_____/|____/ 
+                    | |                        
+                    |_|                        
+'''
+
+
+def try_connect(host, port):
+    try:
+        with rpyc.connect(host, port) as conn:
+            conn.root.handle_client_req('ping')
+        return True
+    except BaseException as e:
+        print(e)
+        print('[ERROR] Server is not available!')
+        return False
+
+
+def send_command(host, port, command):
+    with rpyc.connect(host, port) as conn:
+        result = conn.root.handle_client_req(command)
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', type=str)
+    parser.add_argument('--port', type=int)
+    args = parser.parse_args()
+    host = args.host
+    port = args.port
+
+    result = try_connect(host, port)
+    if result == False:
+        exit(-1)
+
+    # clear_screen()
+    print(logo)
+    print('Designed by Koorye 2023, all copyright reserved!')
+    print('Welcome to SimpleDB!')
+
+    while True:
+        command = input('> ').strip()
+        if command == 'clear':
+            clear_screen()
+        elif command == 'exit':
+            print('Bye.')
+            exit(-1)
+        else:
+            result = send_command(host, port, command)
+            print(result)
+\end{lstlisting}
+
+\textbf{service.py}
+
+\begin{lstlisting}
+import rpyc
+from rpyc import Service    
+
+from .database import Database
+from .parser import SqlParser
+from .utils import do_hash
+
+
+class DatabaseService(Service):
+    def __init__(self, port, host_ports):
+        super().__init__()
+        self.port = port
+        self.host_ports = host_ports
+
+        self.database = Database(save_dir=f'cache/{port}/tables/')
+        self.parser = SqlParser(verbose=False)
+    
+    def exposed_handle_client_req(self, command):
+        result = self._handle_specific_req(command)
+        if result is not None:
+            return result
+       
+        outs = self._select_node(command)
+        if isinstance(outs, str):
+            return outs
+
+        host, port = outs
+        if self._is_local(host, port):
+            print('Handle request locally...')
+            return self.exposed_handle_command(command)
+        else:
+            print(f'Send request to port {port}...')
+            with rpyc.connect(host, port) as conn:
+                result = conn.root.handle_command(command)
+            return result
+    
+    def exposed_handle_command(self, command):
+        return self.database.exec(command)
+    
+    def _handle_specific_req(self, command):
+        if command == 'ping':
+            results = []
+            for host, port in self.host_ports:
+                try:
+                    with rpyc.connect(host, port) as conn:
+                        conn.root.handle_command('ping')
+                    results.append(f'Port {port} active')
+                except:
+                    results.append(f'Port {port} disabled')
+            return '\n'.join(results)
+        
+        if command == 'all':
+            results = []
+            for host, port in self.host_ports:
+                with rpyc.connect(host, port) as conn:
+                    results.append(conn.root.handle_command('all'))
+            return ' '.join(results)
+
+        return None
+    
+    def _select_node(self, command):
+        root = self.parser.parse(command)
+
+        table_name = None
+        for child in root.children:
+            if child.name == 'table':
+                table_name = child.children[0].name
+                break
+        
+        if table_name is None:
+            return '[ERROR] Table name is not found, is your sql correct?'
+            
+        idx = do_hash(table_name) % len(self.host_ports)
+        return self.host_ports[idx]
+
+    def _is_local(self, host, port):
+        if host == 'localhost' or host == '127.0.0.1':
+            return port == self.port
+        return False
+\end{lstlisting}
+
+\textbf{parser.py}
+
+\begin{lstlisting}
+import re
+from anytree import Node, RenderTree
+
+
+class SqlParser(object):
+    def __init__(self, verbose=True):
+        self.verbose = verbose
+    
+    def parse(self, sql):
+        if self.verbose:
+            print('Parsing sql into tree:')
+            print(f'"{sql}"')
+
+        sql = self._handle_space(sql)
+        tokens = self._split_to_tokens(sql)
+        tokens = self._handle_special_tokens(tokens)
+        root = Node('root')
+        parent = root
+
+        cur_node = None
+        for token in tokens:
+            if token == '(':
+                parent = cur_node
+            elif token == ')':
+                parent = parent.parent
+            elif token == ',':
+                pass
+            else:
+                cur_node = Node(token, parent)
+
+        if self.verbose:
+            print('->')
+            for pre, _, node in RenderTree(root):
+                print(f'{pre}{node.name}')
+        
+        return root
+        
+    def _handle_space(self, command):
+        command = command.replace('(', ' ( ') \
+                         .replace(')', ' ) ') \
+                         .replace(',', ' , ') \
+                         .replace(';', ' ; ') 
+        
+        quotes = ['=', '<', '>']
+        for q in quotes:
+            command = re.sub(fr'\s*{q}\s*', q, command)
+        return command
+
+    def _split_to_tokens(self, command):
+        return [token for token in re.split('\s+', command)
+                if len(token) > 0] # remove empty token
+
+    def _handle_special_tokens(self, tokens):
+        remove_tokens = ['into']
+        suffixs = {
+            'fields': [('select', 1), ('into', 2), ('table', 2)],
+            'table': [('into', 1), ('from', 1)],
+            '(': [('table', 1), ('*', 0)],
+            ')': [('table', 3), ('*', 1)],
+        }
+
+        for k, v in suffixs.items():
+            for token, offset in v:
+                if token in tokens:
+                    pos = tokens.index(token) + offset
+                    tokens.insert(pos, k)
+        
+        tokens = [t for t in tokens if t not in remove_tokens]
+        tokens = self._handle_where(tokens)
+        return tokens
+
+    def _handle_where(self, tokens):
+        if 'where' not in tokens:
+            return tokens
+
+        tokens_before_where = [t for idx, t in enumerate(tokens) 
+                               if idx <= tokens.index('where')]
+        tokens_where = [t for idx, t in enumerate(tokens) 
+                        if idx > tokens.index('where')]
+
+        pos = 0
+        while pos < len(tokens_where):
+            if tokens_where[pos] in ['and', 'or']:
+                token = tokens_where[pos]
+                tokens_where[pos] = ','
+                if tokens_where[pos + 1] != '(':
+                    tokens_where.insert(pos + 2, ')')
+                else:
+                    endpos = tokens_where.index(')', pos + 1)
+                    tokens_where.insert(endpos + 1, ')')
+                
+                tokens_where.insert(pos - 1, '(')
+                tokens_where.insert(pos - 1, token)
+            else:
+                pos += 1
+        
+        return tokens_before_where + tokens_where
+\end{lstlisting}
+
+\textbf{utils.py}
+
+\begin{lstlisting}
+import hashlib
+import os
+
+
+def to_numeric(x):
+    try:
+        if '.' in x:
+            x = float(x)
+        else:
+            x = int(x)
+    except:
+        pass
+    
+    return x
+        
+
+def do_hash(x):
+    md5_machine = hashlib.md5()
+    md5_machine.update(x.encode('utf-8'))
+    md5_hash_string = md5_machine.hexdigest()
+    return int(md5_hash_string, 16)
+
+
+def clear_screen():
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
+\end{lstlisting}
+
+\textbf{database.py}
+
+\begin{lstlisting}
+import csv
+import datetime
+import itertools
+import os
+import os.path as osp
+import pandas as pd
+from anytree import RenderTree, PostOrderIter
+
+from .parser import SqlParser
+from .utils import to_numeric
+
+
+class Database(object):
+    """
+    process of database: parse -> optimize -> run
+    """
+    def __init__(self, 
+                 save_dir='tables'):
+        self.save_dir = save_dir
+        os.makedirs(self.save_dir, exist_ok=True)
+        self.parser = SqlParser()
+
+    def exec(self, command):
+        start_time = datetime.datetime.now()
+        print('=' * 40)
+        root = self.parser.parse(command)
+        print('-' * 40)
+        root = self._optimize_command(root)
+        print('-' * 40)
+        result = self._run_command(root)
+        print('-' * 40)
+        end_time = datetime.datetime.now()
+        print(f'Total time cost: {end_time - start_time}')
+        print('=' * 40)
+        return result
+
+    def _optimize_command(self, root):
+        """ optimize tree """
+        print('After optimize:')
+        for pre, _, node in RenderTree(root):
+            print(f'{pre}{node.name}')
+        return root
+    
+    def _run_command(self, root):
+        """ run command """
+        op = root.children[0].name
+        print(f'Running operation {op}...')
+        if op == 'ping':
+            return 'pong'
+        
+        if op == 'all':
+            return self._do_all()
+
+        if op == 'create':
+            return self._do_create(root)
+
+        if op == 'drop':
+            return self._do_drop(root)
+
+        if op == 'insert':
+            return self._do_insert(root)
+
+        if op == 'select':
+            return self._do_select(root)
+            
+        if op == 'delete':
+            return self._do_delete(root)
+
+        return f'operation {op} is not supported!'
+    
+    def _do_all(self):
+        table_names = [filename.split('.')[0] for filename in os.listdir(self.save_dir)]
+        return ' '.join(table_names)
+    
+    def _do_create(self, root):
+        table_name = self._get_values(root, 'table')
+        fields = self._get_values(root, 'fields')
+        table_path, is_exist = self._get_table_path(table_name)
+        if is_exist:
+            return f'[ERROR] Table {table_name} is already existed!'
+        
+        df = pd.DataFrame(columns=fields)
+        self._save_table(df, table_path)
+        return '1 table created.'
+    
+    def _do_drop(self, root):
+        table_name = self._get_values(root, 'table')
+        table_path, is_exist = self._get_table_path(table_name)
+
+        if not is_exist:
+            return f'[ERROR] Table {table_name} is not existed!'
+        
+        os.remove(table_path)
+        return '1 table dropped.'
+ 
+    def _do_insert(self, root):
+        table_name = self._get_values(root, 'table')
+        fields = self._get_values(root, 'fields')
+        values = self._get_values(root, 'values')
+        field_to_value = {k: v for k, v in zip(fields, values)}
+        table_path, is_exist = self._get_table_path(table_name)
+
+        if not is_exist:
+            return f'[ERROR] Table {table_name} is not existed!'
+        
+        try:
+            print('Inserting new row...')
+            df = self._read_table(table_path)
+
+            newrow = []
+            for col in df.columns:
+                if col not in fields:
+                    newrow.append(None)
+                else:
+                    newrow.append(field_to_value[col])
+            
+            df.loc[len(df.index)] = newrow
+            self._save_table(df, table_path)
+        except BaseException as e:
+            print(e)
+            print('[ERROR] Insert failed! Maybe some fields are not existed or type is not matching!')
+            
+        return '1 row inserted.'
+   
+    def _do_select(self, root):
+        table_name = self._get_values(root, 'table')
+        fields = self._get_values(root, 'fields')
+        table_path, is_exist = self._get_table_path(table_name)
+
+        if not is_exist:
+            return f'[ERROR] Table {table_name} is not existed!'
+        
+        df = self._read_table(table_path)
+        
+        if fields == '*':
+            fields = df.columns.tolist()
+        
+        try:
+            df = self._filter_where(df, root)
+            df = df[fields].reset_index(drop=True)
+            out = str(df) + f'\n{len(df)} rows selected.'
+            return out
+        except BaseException as e:
+            print(e)
+            return '[ERROR] Select failed! Maybe some fields are not in table!'
+    
+    def _do_delete(self, root):
+        table_name = self._get_values(root, 'table')
+        table_path, is_exist = self._get_table_path(table_name)
+
+        if not is_exist:
+            return f'[ERROR] Table {table_name} is not existed!'
+        
+        df = self._read_table(table_path)
+        
+        try:
+            drop_indexs = self._filter_where(df, root).index.tolist()
+            df = df.drop(drop_indexs)
+            self._save_table(df, table_path)
+        except BaseException as e:
+            print(e)
+            return '[ERROR] Delete failed! Maybe some fields are not in table!'
+            
+        return f'{len(drop_indexs)} rows deleted.'
+    
+    def _filter_where(self, df, root):
+        print('Filter Dataframe by where...')
+        node = None
+        for child in root.children:
+            if node:
+                node = child
+                break
+
+            if child.name == 'where':
+                node = True
+
+        if node is None:
+            return df
+        
+        ops = [node.name for node in PostOrderIter(node)]
+        indexs_list = []
+        
+        for op in ops:
+            if op == 'or':
+                all_indexs = list(itertools.chain(*indexs_list))
+                all_indexs = list(set(all_indexs))
+                indexs_list = [all_indexs]
+            elif op == 'and':
+                first_indexs = indexs_list[0]
+
+                for indexs in indexs_list[1:]:
+                    first_indexs = set(first_indexs).intersection(set(indexs))
+
+                first_indexs = list(first_indexs)
+                indexs_list = [first_indexs]
+            else:
+                indexs = self._select_indexs(df, op)
+                indexs_list.append(indexs)
+            
+        return df.iloc[indexs_list[0]]
+    
+    def _get_values(self, root, name):
+        for child in root.children:
+            if child.name == name:
+                values = [child.name for child in child.children]
+
+                if len(values) == 1:
+                    values = values[0]
+
+                print(f'Get value of {name}: {values}')
+                return values
+
+        return None
+    
+    def _select_indexs(self, df, op):
+        op = op.replace('<', ' < ').replace('>', ' > ').replace('=', ' = ') \
+                .replace('>=', ' >= ').replace('<=', ' <= ')
+        field, op, value = op.split(' ')
+        value = to_numeric(value)
+
+        if op == '<':
+            indexs = df[field] < value
+        elif op == '>':
+            indexs = df[field] > value
+        elif op == '=':
+            indexs = df[field] == value
+        elif op == '<=':
+            indexs = df[field] <= value
+        elif op == '>=':
+            indexs = df[field] >= value
+        else:
+            raise NotImplementedError
+
+        indexs = df[indexs].index.tolist()
+        return indexs
+
+    def _get_table_path(self, table_name):
+        path = osp.join(self.save_dir, table_name + '.csv')
+        is_exist = osp.exists(path)
+        return path, is_exist
+    
+    def _read_table(self, path):
+        return pd.read_csv(path, index_col=None, quoting=csv.QUOTE_NONE)
+    
+    def _save_table(self, df, path):
+        df.to_csv(path, index=None, quoting=csv.QUOTE_NONE)
+\end{lstlisting}
+
+\end{appendix}

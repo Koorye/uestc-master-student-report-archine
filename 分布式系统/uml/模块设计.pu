@@ -1,0 +1,43 @@
+@startuml
+
+class KVStore {
+    - Dict store
+    --
+    + set(k, v): String
+    + get(k): Any
+    + delete(k): Integer
+}
+
+class HTTPService {
+    - HTTPServer httpServer
+    --
+    + handleHTTPRequest(type, k, v): Dict
+    - selectNode(k): Integer
+}
+
+class RPCService {
+    - RPCServer rpcServer
+    --
+    + handleRPCRequest(type, k, v): Dict
+}
+
+class Node {
+    - Integer nodeID
+    --
+    + handleHTTPRequest(type, k, v): Dict
+    - handleRPCRequest(type, k, v): Dict
+    - doSet(k, v): String
+    - doGet(k, v): Any
+    - doDelete(k, v): Integer
+}
+
+class Client {
+    --
+}
+
+HTTPService <|--  Node
+RPCService <|-- Node
+Client -ri-> Node
+Node ..> KVStore
+
+@enduml

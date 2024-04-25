@@ -1,0 +1,146 @@
+%% 该模板修改自《计算机学报》latex 模板
+%% 主要是将双栏改成单栏，去掉了部分计算机学报标识；
+%% 源文件自：https://www.overleaf.com/latex/templates/latextemplet-cjc-xelatex/ybmmymncrrmw
+
+\documentclass[10.5pt,compsoc,UTF8]{CjC}
+\usepackage{CTEX}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{footmisc}
+\usepackage{subfigure}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage[noadjust]{cite}
+\usepackage{amsmath,amsthm}
+\usepackage{amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{ccaption}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{xcolor,stfloats}
+\usepackage{comment}
+\setcounter{page}{1}
+\graphicspath{{figures/}}
+\usepackage{cuted}%flushend,
+\usepackage{captionhack}
+\usepackage{epstopdf}
+\usepackage{gbt7714}
+\usepackage{newclude}
+\usepackage{subfloat}
+
+%===============================%
+
+\headevenname{\mbox{\quad} \hfill  \mbox{\zihao{-5}{ \hfill 《机器学习》  } \hspace {50mm} \mbox{2024 年 4 月}}}%
+\headoddname{ \hfill 卷积神经网络和ViT的比较}%
+
+%footnote use of *
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\setcounter{footnote}{0}
+\renewcommand\footnotelayout{\zihao{5-}}
+
+\newtheoremstyle{mystyle}{0pt}{0pt}{\normalfont}{1em}{\bf}{}{1em}{}
+\theoremstyle{mystyle}
+\renewcommand\figurename{figure~}
+\renewcommand{\thesubfigure}{(\alph{subfigure})}
+\newcommand{\upcite}[1]{\textsuperscript{\cite{#1}}}
+\renewcommand{\labelenumi}{(\arabic{enumi})}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+\newcommand{\abc}{\color{white}\vrule width 2pt}
+\renewcommand{\bibsection}{}
+\makeatletter
+\renewcommand{\@biblabel}[1]{[#1]\hfill}
+\makeatother
+\setlength\parindent{2em}
+%\renewcommand{\hth}{\begin{CJK*}{UTF8}{gbsn}}
+%\renewcommand{\htss}{\begin{CJK*}{UTF8}{gbsn}}
+
+\begin{document}
+
+\hyphenpenalty=50000
+\makeatletter
+\newcommand\mysmall{\@setfontsize\mysmall{7}{9.5}}
+\newenvironment{tablehere}
+  {\def\@captype{table}}
+
+\let\temp\footnote
+\renewcommand \footnote[1]{\temp{\zihao{-5}#1}}
+
+
+\thispagestyle{plain}%
+\thispagestyle{empty}%
+\pagestyle{CjCheadings}
+
+% \begin{table*}[!t]
+\vspace {-13mm}
+
+
+\onecolumn
+\zihao{5-}\noindent XXX \hfill 《机器学习》\hfill 2024 年 4 月\\
+\noindent\rule[0.25\baselineskip]{\textwidth}{1pt}
+
+{
+\centering
+\vspace {11mm}
+{\zihao{2} \heiti 卷积神经网络与ViT的比较 }
+
+\vskip 5mm
+
+{\zihao{4}\fangsong Koorye}
+
+\vspace {5mm}
+
+\zihao{5}{电子科技大学，计算机科学与工程学院}
+
+}
+
+\vskip 5mm
+
+\zihao{5}{
+\setlength{\baselineskip}{16pt}\selectfont{
+\noindent {\heiti 摘\quad 要\quad }
+在计算机视觉领域，卷积神经网络(CNN)和Vision Transformer模型(ViT)是两种重要的模型。CNN是一种传统的基于卷积操作的神经网络，在图像分类、目标检测等任务中取得了巨大成功。而ViT是一种更为新颖的基于注意力机制的模型，从自然语言处理任务中受到启发，近年来在计算机视觉任务中取得了很好的效果。本文将对这两种模型进行比较，分析它们的优劣势。具体来说，我们将通过比较两者的结构、特征表示、泛化能力等方面，来分析两者的差异。我们将通过基于全局和局部的比较、降维可视化、性能和泛化能力对比等方法，来展示两者的差异。实验结果表明，CNN存在许多意想不到的优势，其特征区域的形状和模式更接近人类大脑的工作模式，同时CNN能更好关注细粒度特征，并具备更强大的泛化能力。希望本文能够为未来的工作带来新的启发。
+\par}}
+\vspace {5mm}
+
+\zihao{5}{\noindent
+{\heiti 关键词 \quad }{卷积神经网络、Vision Transformer。  }
+}
+
+
+\vskip 7mm
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\zihao{5}
+\vskip 10mm
+% \begin{multicols}{1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include*{chapters/introduction}
+\include*{chapters/related_work}
+\include*{chapters/preliminaries}
+\include*{chapters/method}
+\include*{chapters/experiment}
+\include*{chapters/conclusion}
+
+\newpage
+\vspace {10mm}
+\centerline
+{\zihao{5}\textsf{参~考~文~献}}
+\zihao{5-} \addtolength{\itemsep}{-1em}
+\vspace {1.5mm}
+\bibliographystyle{gbt7714-numerical}
+\bibliography{ref}
+
+\newpage
+\include*{chapters/appendix}
+
+\end{document}
+
+

@@ -1,0 +1,34 @@
+@startuml
+
+left to right direction
+
+node 客户端 as client {
+    rectangle 客户端函数 as cf
+    rectangle 客户端存根 as cs
+    rectangle 客户端sockets as cso
+}
+
+node 服务端 as server {
+    rectangle 服务端函数 as sf
+    rectangle 服务端存根 as ss
+    rectangle 服务端sockets as sso
+}
+
+cloud 网络 as net
+
+cf -> cs
+cs -> cso
+cso -> cs
+cs -> cf
+
+sf -> ss
+ss -> sso
+sso -> ss
+ss -> sf
+
+cso --> net
+net --> sso
+net <-- sso
+cso <-- net
+
+@enduml

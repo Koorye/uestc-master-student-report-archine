@@ -1,0 +1,29 @@
+@startuml 接收http流程
+
+actor 用户 as user
+participant "HTTP服务器" as hs
+participant "RPC客户端" as rc
+participant "KV存储" as kv
+
+autonumber
+user --> hs: 发送请求，op, {key: value}
+hs --> hs: 计算哈希值，hash(key)
+
+alt hash(key) == 当前节点ID
+    alt op == "set"
+        hs --> kv: 新增记录，{key: value}
+        kv --> hs: 返回结果，OK/overwrite
+    else op == "get"
+        hs --> kv: 获取记录，key
+        kv --> hs: 返回结果，{key: value} or None
+    else op == "delete"
+        hs --> kv: 删除记录，key
+        kv --> hs: 返回结果，1 or 0
+    end
+else hash(key) != 当前节点ID
+    hs --> rc: 向目标ID转发请求，{key: value}
+    rc --> hs: 返回结果，Any
+end
+hs --> user: 返回结果，Any
+
+@enduml

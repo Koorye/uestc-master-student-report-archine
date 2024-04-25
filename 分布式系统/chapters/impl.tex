@@ -1,0 +1,275 @@
+\subsection{实现与部署}
+
+本章节将介绍本系统是如何实现与部署的，包括开发工具和开发流程。
+
+\subsubsection{开发工具}
+
+开发工具：
+\begin{itemize}
+    \item Visual Studio Code 1.82.2
+    \item Fluent Terminal 0.77.0
+    \item Docker 24.0.6
+    \item Docker Compose v2.21.0-desktop.1
+\end{itemize}
+
+开发环境：
+\begin{itemize}
+    \item Python 3.8.16
+    \item Miniconda 4.12.0
+\end{itemize}
+
+开发框架：
+\begin{itemize}
+    \item Fastapi 0.103.1。Fastapi是一个简单高性能的HTTP框架，可以快速响应HTTP请求。
+    \item Rpyc 5.3.1。Rpyc是一个易用的RPC框架。
+    \item Uvicorn 0.23.2。Uvicorn是一个轻量级的服务器框架，可用于运行服务器程序。
+\end{itemize}
+
+\subsubsection{开发流程}
+
+本章节将简述开发的总体流程，避免任何不必要的细节赘述，仅展示最核心语句和代码。
+
+建立HTTP服务。基于Fastapi和Uvicorn，一个HTTP服务可以相当容易被建立。
+
+\begin{lstlisting}
+import uvicorn
+from fastapi import Fastapi
+
+app = Fastapi()
+
+@app.post('/')
+def handle_set(data: Dict):
+    for k, v in data.items():
+        return service.handle_http_req('set', k, v)
+
+if __name__ == '__main__':
+    uvicorn.run(app, port=<HTTP_PORT>)
+\end{lstlisting}
+
+上面的代码清晰展示了HTTP服务是如何被建立的，只需导入fastapi和uvicorn包，创建app，设定路由，最后通过uvicorn启动app即可。
+
+建立RPC服务。基于Rpyc，RPC服务的建立相当容易。
+
+\begin{lstlisting}
+from rpyc import Service
+from rpyc.utils.server import ThreadedServer
+
+class RPCService(Service):
+    def exposed_handle_rpc_req(self, op, k, v=None):
+        func = getattr(self, 'do_' + operation)
+        return func(k, v) if v is not None else func(k)
+
+if __name__ == '__main__':
+    service = RPCService() 
+    rpc_server = ThreadedServer(service, <RPC_PORT>)
+    t = threading.Thread(rpc_server.start, True)
+    t.start()
+\end{lstlisting}
+
+上面的代码清晰展示了RPC服务的建立流程。Rpyc框架可以直接暴露继承自Service类下开头为exposed\_的方法，这样来自其他节点的客户端可以直接通过方法名使用该方法。该方法会通过op字段获取本地的set/get/delete等方法句柄，之后调用该方法获得结果。需要注意的是，RPC服务在一个额外线程上启用，这样才能与HTTP服务器同时运行。
+
+\subsubsection{节点的选择和转发}
+
+主程序中包含基于哈希的节点选择和转发策略。
+
+\begin{lstlisting}
+class Node(object):
+    def handle_http_request(self, operation, k, v=None):
+        target_id = self._select_rpc(k)
+        if self._is_local(target_id):
+            return self.handle_local_req(operation, k, v)
+        else:
+            target_host = self.hosts[target_id]
+            conn = rpyc.connect(target_host, <RPC_PORT>)
+            return conn.root.handle_rpc_req(operation, k, v)
+        
+    def _select_rpc(self, k):
+        return hash(k) % len(self.hosts)
+
+    def _is_local(self, id_):
+        return id_ == self.id
+\end{lstlisting}
+
+上面的代码展示了节点的选择和转发，其逻辑非常简单。首先根据hash()函数获取唯一ID号，当ID与本地ID匹配时，就调用本地的处理函数；否则，向ID对应的目标节点转发RPC请求。
+
+\subsubsection{部署流程}
+
+本章节将阐述本系统是如何部署的，仅展示最核心的步骤和代码。
+
+打包Docker镜像。基于Docker，可以避免繁杂且容易出错和冲突的环境配置工作，直接以容器的形式运行。
+
+\newpage
+
+\begin{lstlisting}[language=Bash]
+FROM ubuntu:20.04
+MAINTAINER Koorye <a1311586225@gmail.com>
+COPY requirements.txt /tmp
+WORKDIR /tmp
+RUN apt clean && apt update
+RUN apt install -y python3 python3-dev python3-pip
+RUN pip3 install -r requirements.txt
+COPY simplekv simplekv
+WORKDIR simplekv
+ENTRYPOINT ["python3", "app.py"]
+CMD ["--host", "(host)", "--all-hosts", "(host1)", "(host2)", "(host3)"]
+\end{lstlisting}
+
+上面的代码展示了一个Dockerfile的完整编写逻辑：
+\begin{itemize}
+    \item FROM。指定基础镜像，后面的打包工作将在该镜像上进行。
+    \item MAINTAINER。指定作者信息。
+    \item COPY。复制文件或目录到镜像中，这里复制了python程序所需的依赖以及项目目录。
+    \item WORKDIR。指定工作目录，相当于cd命令。
+    \item RUN。运行命令，这里运行了多个命令：通过apt包管理器安装python程序、通过pip包管理器安装python依赖。
+    \item ENTRYPOINT。运行命令，与RUN大致相同，这里启动python程序。
+    \item CMD。运行命令或传递必要的参数，这里传入了当前节点的host信息和所有节点的host信息。
+\end{itemize}
+
+在编写上述Dockerfile之后，可以调用如下命令进行打包。
+
+\begin{lstlisting}[language=Bash]
+$ docker build -t simplekv:v1 .
+\end{lstlisting}
+
+如果一切顺利，就可以通过如下命令查看打包后的镜像。
+
+\begin{lstlisting}[language=Bash]
+$ docker images
+REPOSITORY TAG IMAGE ID     CREATED     SIZE
+simplekv   v1  3ccc296dffc2 13 days ago 458MB
+\end{lstlisting}
+
+之后可以通过如下命令启动容器。
+
+\begin{lstlisting}[language=Bash]
+$ docker network create simplekv_rdp
+$ docker run -d --name server1 -p 9527:80 -v log/path/here/0:/tmp/simplekv/logs --net simplekv_rdp simplekv:v1 --host server1 --all-hosts server1 server2 server3
+$ docker run -d --name server2 -p 9528:80 -v log/path/here/1:/tmp/simplekv/logs --net simplekv_rdp simplekv:v1 --host server2 --all-hosts server1 server2 server3
+$ docker run -d --name server3 -p 9529:80 -v log/path/here/2:/tmp/simplekv/logs --net simplekv_rdp simplekv:v1 --host server3 --all-hosts server1 server2 server3
+\end{lstlisting}
+
+首先通过docker network create命令名为simplekv\_rdp的网络，模式默认为桥接。在该模式下，网络内部的容器可以通过容器名称相互通信。
+
+之后通过docker run命令从镜像运行容器，上述命令中传递了一些参数：
+\begin{itemize}
+    \item -d。指定容器以后台模式运行，否则将占用当前窗口的会话。
+    \item --name。指定容器名称。
+    \item -p。指定映射端口，可以将外部端口映射到容器内部端口。
+    \item -v。指定挂载目录，可以将宿主机中的目录或文件挂载到容器中或是将容器中的目录或文件挂载到宿主机，这里挂载了容器中的日志目录。
+    \item --net。指定连接的网络。
+    \item --host, --all-hosts。镜像中指定的命令行参数。
+\end{itemize}
+
+如果一切顺利，可以通过如下命令查看网络和镜像。
+
+\begin{lstlisting}[language=Bash]
+$ docker network ls
+NETWORK ID     NAME             DRIVER    SCOPE
+7ffa7f92a8df   simplekv_rdp     bridge    local
+$ docker ps
+CONTAINER ID IMAGE       COMMAND       ... PORTS        NAMES
+61ec299498db simplekv:v1 "python3 ..." ... 9527->80/tcp server1
+e9c3170487e0 simplekv:v1 "python3 ..." ... 9527->80/tcp server2
+5e444de115f2 simplekv:v1 "python3 ..." ... 9527->80/tcp server3
+\end{lstlisting}
+
+基于Docker Compose的容器编排。虽然上述方式可以启动容器，但是当容器数量很多时，这样逐个启动/关闭容器的管理方式非常麻烦，尤其是容器之间相互联系时。因此，更好的方案是采用Docker Compose或Kubernates进行容器管理。这里只展示基于Docker Compose的方式，首先需要编写一个YAML文件。
+
+\begin{lstlisting}[language=Yaml]
+version: '1'
+services:
+  server1:
+    image: simplekv:v1
+    container_name: server1
+    volumes: 
+    - log/path/here/0:/tmp/simplekv/logs/
+    ports: 
+    - "9527:80"
+    networks:
+    - simplekv_rdp
+    command: 
+    - "--host"
+    - "server1"
+    - "--all-hosts"
+    - "server1"
+    - "server2"
+    - "server3"
+  server2:
+    ...
+  server3:
+    ...
+
+networks:
+  simplekv_rdp:
+    external: true
+    driver: bridge
+\end{lstlisting}
+
+上述文件中包含了services服务和networks网络的配置。Services中配置了server1/server2/server3共3个节点，与上述配置方式相似的，每个节点进行了镜像、容器名称、目录挂载、端口映射、网络、命令行参数的配置。Networks中则配置了网络名称、模式，并指定为外部网络。
+
+之后，可以通过一行命令启动所有容器。
+
+\begin{lstlisting}[language=Bash]
+$ docker-compose up -d
+[+] Running 3/3
+ ✔ Container server1  Started                            0.1s
+ ✔ Container server2  Started                            0.1s
+ ✔ Container server3  Started                            0.1s 
+\end{lstlisting}
+
+基于Docker Compose，容器可以很容易被编排和管理，集群服务的启动/停止变得非常容易。
+
+\section{实验数据及结果分析}
+
+基于测试示例，对本系统的工作情况进行验证，首先是写入/更新操作测试。
+
+\begin{lstlisting}[language=Bash]
+$ curl -XPOST -H "Content-type: application/json" http://localhost:9527/ -d '{"myname": "电子科技大学@2023"}'
+"ok"
+$curl -XPOST -H "Content-type: application/json" http://localhost:9528/ -d '{"tasks": ["task 1", "task 2", "task 3"]}'
+"ok"
+$curl -XPOST -H "Content-type: application/json" http://localhost:9529/ -d '{"age": 123}'
+"ok"
+\end{lstlisting}
+
+写入成功时，返回ok，测试通过。
+
+接下来是读取测试。
+
+\begin{lstlisting}[language=Bash]
+$ curl http://localhost:9528/myname
+{"myname": "电子科技大学@2023"}
+$ curl http://localhost:9527/tasks
+{"tasks": ["task 1", "task 2", "task 3"]}
+$ curl http://localhost:9527/notexistkey
+{"detail":"Not Found"} # status code is 404
+\end{lstlisting}
+
+读取成功时返回JSON，否则返回404，测试通过。
+
+最后是删除测试。
+
+\newpage
+
+\begin{lstlisting}[language=Bash]
+$ curl -XDELETE http://localhost:9529/myname
+1
+$ curl http://localhost:9527/myname
+{"detail":"Not Found"} # status code is 404
+$ curl -XDELETE http://localhost:9529/myname
+0
+\end{lstlisting}
+
+删除成功时返回1，值不存在时返回0，删除后读取相应key返回404，测试通过。
+
+基于测试脚本进行完整测试，结果如下。
+
+\begin{lstlisting}[language=Bash]
+$ bash tests/test.sh 3
+"ok""ok""ok""ok""ok"..."ok"
+{"key-70":"value 70"}{"key-473":"value 473"}{"key-43":"value 43"}{"key-431":"value 431"}{"key-134":"value 134"}{"key-475":"value 475"}{"key-88":"value 88"}...{"key-394":"value 394"}"overwrite""overwrite""overwrite"..."overwrite"
+11111111111111111011111111111111011101100...00
+{"detail":"Not Found"}{"detail":"Not Found"}{"detail":"Not Found"}{"detail":"Not Found"}{"detail":"Not Found"}{"key-133":"value 133"}{"key-209":"value 209"}{"key-267":"value 267"}{"key-86":"value 86"}{"key-402":"value 402"}...{"detail":"Not Found"}{"detail":"Not Found"}{"detail":"Not Found"}{"detail":"Not Found"}
+\end{lstlisting}
+
+上述结果是基于脚本中大量模拟请求得到的结果，分别包括set/get/delete/set/get操作，可以看到所有操作都被顺利执行。

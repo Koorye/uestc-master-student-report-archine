@@ -1,0 +1,17 @@
+@startuml
+
+left to right direction
+
+node 图像数据集 as dataset
+cloud 深度学习模型 as model
+database 矢量数据库 as database
+card 查询图像 as img
+card 查询结果 as res
+
+dataset --> model: 1.提取特征矢量
+model --> database: 2.存入数据库
+img --> model: 3.提取特征矢量
+model --> database: 4.查询数据库
+res <-- database: 5.返回结果
+
+@enduml

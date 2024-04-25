@@ -1,0 +1,11 @@
+\section{相关工作}
+
+本章节将介绍本文的相关工作，包括卷积神经网络、Transformer、Vision Transformer等模型。
+
+\subsection{卷积神经网络}
+
+卷积神经网络(CNN)是一种经典的视觉模型，在图像分类、目标检测、图像分割等任务中有着大量经典应用。CNN的历史最早可以追溯到LeNet-5\cite{lecun1998gradient}，这是一种用于手写数字识别的卷积神经网络。之后，AlexNet\cite{krizhevsky2012imagenet}在2012年ImageNet比赛中取得了冠军，超越所有传统的机器学习方法，引发了深度学习的热潮。AlexNet采用了多层卷积和池化操作，通过堆叠这些操作，逐渐提取出输入数据的高层次特征。之后，VGG\cite{simonyan2015deep}、GoogLeNet\cite{szegedy2015going}等模型相继提出，不断提高了图像分类任务的性能。这些模型通过卷积、池化、Batch Normalization、激活函数等操作，逐渐提取出输入数据的高层次特征，并消除了数据分布的偏差。2015年，ResNet\cite{he2016deep}提出了残差连接，解决了模型梯度消失和爆炸的的问题，使得模型层数可以进一步加深。DenseNet也采用了与ResNet类似的思路，只不过将残差操作变为了堆叠操作。之后，神经网络架构搜索(NAS)技术也逐渐成为研究热点，如RegNet\cite{radosavovic2020designing}、EfficientNet\cite{tan2019efficientnet}等模型通过自动搜索技术，设计出了更加高效的网络结构。此外，轻量化模型也成为研究热点，如MobileNet\cite{howard2017mobilenets}、ShuffleNet\cite{zhang2017shufflenet}等模型通过设计轻量化的网络结构，实现了在移动设备上的高效推理。除了图像分类以外，CNN在目标检测、图像分割、图像生成等任务中也有着大量应用，如Faster R-CNN\cite{ren2015faster}、Mask R-CNN\cite{he2017mask}、U-Net\cite{ronneberger2015u}等模型，并取得了巨大成功。
+
+\subsection{Transformer}
+
+Transformer是一种新兴的神经网络模型，最早由Vaswani等人提出\cite{vaswani2017attention}，用于自然语言处理任务。传统的循环神经网络(RNN)\cite{schmidt2019recurrent}和长短时记忆网络(LSTM)\cite{Graves2012}等模型在处理长序列数据时存在梯度消失和爆炸的问题，同时也无法并行计算，而Transformer解决了上述问题，因此在自然语言处理领域取得了巨大成功。之后，BERT\cite{devlin-etal-2019-bert}、GPT\cite{radford2018improving}、T5\cite{raffel2019exploring}等模型相继提出，通过改进预训练方式不断提高自然语言处理任务的性能。受到Transformer在自然语言处理领域的启发，一些工作尝试将Transformer引入计算机视觉任务\cite{105555}，然而并未取得超越CNN的性能。直到Vision Transformer(ViT)\cite{dosovitskiy2021image}的提出，Transformer才在计算机视觉领域取得了巨大成功。ViT将图像分割成若干个图并组成序列，并通过大规模数据集预训练，取得超越CNN的性能。之后，DeiT\cite{touvron2021training}、CaiT\cite{touvron2021going}、PVT\cite{wang2021pyramid}等模型相继提出，不断提高图像分类任务的性能。此外，Transformer在目标检测、图像分割、图像生成等任务中也有着大量应用，如DETR\cite{carion2020end}、SegFormer\cite{xie2021segformer}等模型，并取得了巨大成功。

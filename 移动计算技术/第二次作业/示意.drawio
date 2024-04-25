@@ -1,0 +1,196 @@
+<mxfile host="Electron" modified="2024-03-20T15:08:53.272Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.0.4 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="RllRXXuLpZAdcrDOQUgn" version="24.0.4" type="device">
+  <diagram name="第 1 页" id="Q2Mc1jxx2IrMaR0B5iBZ">
+    <mxGraphModel dx="867" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1350" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="8T576a9k5OITWneR4RPN-6" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.router;" parent="1" vertex="1">
+          <mxGeometry x="240" y="180" width="55" height="36.5" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-7" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.router;" parent="1" vertex="1">
+          <mxGeometry x="425" y="180" width="55" height="36.5" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-8" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.router;" parent="1" vertex="1">
+          <mxGeometry x="330" y="90" width="55" height="36.5" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-9" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.cell_phone;" parent="1" vertex="1">
+          <mxGeometry x="345" y="300" width="25" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-10" value="本地代理" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="165" y="184" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-11" value="外部代理" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="473" y="183" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-12" value="目标路由器" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="312.5" y="60" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-14" value="移动设备" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="317.5" y="360" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-15" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="357" y="298.6644736842105" as="sourcePoint" />
+            <mxPoint x="426" y="215" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-17" value="1.注册转交地址" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-15" vertex="1" connectable="0">
+          <mxGeometry x="-0.043" y="-1" relative="1" as="geometry">
+            <mxPoint x="-35" y="21" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-18" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="425" y="189.25" as="sourcePoint" />
+            <mxPoint x="295" y="189.25" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-19" value="2.告知并记录转交地址" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-18" vertex="1" connectable="0">
+          <mxGeometry x="0.0205" y="1" relative="1" as="geometry">
+            <mxPoint y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-20" value="" style="curved=1;endArrow=classic;html=1;rounded=0;" parent="1" source="8T576a9k5OITWneR4RPN-9" target="8T576a9k5OITWneR4RPN-8" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="310" as="sourcePoint" />
+            <mxPoint x="550" y="260" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="530" y="340" />
+              <mxPoint x="560" y="250" />
+              <mxPoint x="540" y="108" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-21" value="3.以永久地址发送数据" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-20" vertex="1" connectable="0">
+          <mxGeometry x="-0.0536" y="8" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-22" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" source="8T576a9k5OITWneR4RPN-8" target="8T576a9k5OITWneR4RPN-6" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="220" y="170" as="sourcePoint" />
+            <mxPoint x="270" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-23" value="4.接收数据" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-22" vertex="1" connectable="0">
+          <mxGeometry x="0.1231" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-24" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="295" y="209.25" as="sourcePoint" />
+            <mxPoint x="425" y="209.25" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-26" value="5.转交数据" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-24" vertex="1" connectable="0">
+          <mxGeometry x="-0.1436" y="-2" relative="1" as="geometry">
+            <mxPoint x="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-27" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="452" y="220" as="sourcePoint" />
+            <mxPoint x="372" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8T576a9k5OITWneR4RPN-28" value="5.转交数据" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8T576a9k5OITWneR4RPN-27" vertex="1" connectable="0">
+          <mxGeometry x="-0.0413" y="1" relative="1" as="geometry">
+            <mxPoint x="16" y="-16" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-21" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.cell_phone;" parent="1" vertex="1">
+          <mxGeometry x="743.5" y="300" width="25" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-22" value="移动设备" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="716" y="360" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-23" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.router;" parent="1" vertex="1">
+          <mxGeometry x="727.5" y="90" width="55" height="36.5" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-24" value="目标路由器&lt;div&gt;（支持关联地址）&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="598.5" y="82.25" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-25" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="744" y="300" as="sourcePoint" />
+            <mxPoint x="744" y="128" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-32" value="2.提交永久地址&lt;div&gt;和关联地址&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="MWbztb9EXJEPdlqh7DRJ-25" vertex="1" connectable="0">
+          <mxGeometry x="-0.0194" y="2" relative="1" as="geometry">
+            <mxPoint x="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-27" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.router;" parent="1" vertex="1">
+          <mxGeometry x="641" y="199.75" width="55" height="36.5" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-28" value="外部路由器" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="623.5" y="169.75" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-29" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="669" y="240" as="sourcePoint" />
+            <mxPoint x="739" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-30" value="1.获取关联地址" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="MWbztb9EXJEPdlqh7DRJ-29" vertex="1" connectable="0">
+          <mxGeometry x="-0.1349" relative="1" as="geometry">
+            <mxPoint x="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-33" value="永久地址1: 关联地址1永久&lt;span style=&quot;background-color: initial;&quot;&gt;地址2: 关联地址2&lt;/span&gt;&lt;div&gt;...&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;" parent="1" vertex="1">
+          <mxGeometry x="727.5" y="30" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-36" value="" style="curved=1;endArrow=classic;html=1;rounded=0;" parent="1" source="MWbztb9EXJEPdlqh7DRJ-21" target="MWbztb9EXJEPdlqh7DRJ-23" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="820" y="320" as="sourcePoint" />
+            <mxPoint x="870" y="270" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="800" y="250" />
+              <mxPoint x="800" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-37" value="4.以永久地址&lt;div&gt;发送数据&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="MWbztb9EXJEPdlqh7DRJ-36" vertex="1" connectable="0">
+          <mxGeometry x="-0.1198" relative="1" as="geometry">
+            <mxPoint x="-4" y="22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-38" value="" style="curved=1;endArrow=classic;html=1;rounded=0;" parent="1" source="MWbztb9EXJEPdlqh7DRJ-23" target="MWbztb9EXJEPdlqh7DRJ-21" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="860" y="270" as="sourcePoint" />
+            <mxPoint x="910" y="220" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="870" y="200" />
+              <mxPoint x="850" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-39" value="5.查询关联地址&lt;div&gt;并接收数据&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="MWbztb9EXJEPdlqh7DRJ-38" vertex="1" connectable="0">
+          <mxGeometry x="0.0456" relative="1" as="geometry">
+            <mxPoint x="-1" y="-33" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-40" value="3. 记录映射" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="647.5" y="40" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-41" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="614" y="380" as="sourcePoint" />
+            <mxPoint x="614" y="50" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MWbztb9EXJEPdlqh7DRJ-42" value="永久地址1: 关联地址1&lt;div&gt;永久地址2: 关联地址2&lt;br&gt;&lt;/div&gt;&lt;div&gt;...&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;" parent="1" vertex="1">
+          <mxGeometry x="160" y="104" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NdhJyTvmgjDDsQr7_pwc-1" value="代理的移动IP技术" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="282.5" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="NdhJyTvmgjDDsQr7_pwc-2" value="非代理的移动IP技术" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="671" width="170" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,59 @@
+@startuml
+
+left to right direction
+
+actor 用户 as u
+node 浏览器 as bs
+interface HTTP协议 as http
+cloud "局域网/Internet" as internet
+
+frame "Docker服务" as serv {
+    node 节点1 as s1{
+        component "HTTP服务" as h1
+        component "RPC服务" as r1
+        database "数据库引擎" as kv1
+    }
+    node 节点2 as s2 {
+        component "HTTP服务" as h2
+        component "RPC服务" as r2
+        database "数据库引擎" as kv2
+    }
+    node 节点3 as s3 {
+        component "HTTP服务" as h3
+        component "RPC服务" as r3
+        database "数据库引擎" as kv3
+    }
+    interface "RPC协议" as rpc
+    cloud "Docker桥接网络" as net
+}
+
+u - bs
+bs -- http
+http ). internet
+
+http -- h1
+http -- h2
+http -- h3
+
+h1 - r1
+h2 - r2
+h3 - r3
+
+h1 -- kv1
+h2 -- kv2
+h3 -- kv3
+
+r1 -- kv1
+r2 -- kv2
+r3 -- kv3
+
+kv1 -[hidden]- rpc
+kv2 -[hidden]- rpc
+kv3 -[hidden]- rpc
+
+r1 -- rpc
+r2 -- rpc
+r3 -- rpc
+rpc ). net
+
+@enduml
