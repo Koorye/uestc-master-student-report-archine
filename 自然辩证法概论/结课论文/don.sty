@@ -1,0 +1,63 @@
+\usepackage{booktabs}
+\usepackage[UTF8,heading=true]{ctex}
+\usepackage{fancyhdr}
+
+% 定义字体和伪粗体
+\let\songti\relax
+\let\heiti\relax
+\let\fangsong\relax
+\setmainfont{Times New Roman}
+\newCJKfontfamily{\songti}[AutoFakeBold=true]{SimSun}
+\newCJKfontfamily{\heiti}[AutoFakeBold=true]{SimHei}
+\newCJKfontfamily{\fangsong}[AutoFakeBold=true]{FangSong}
+
+% 定义标题样式
+\ctexset{
+    section = {
+        name = {,、},
+        number = \chinese{section},
+        format = \heiti\zihao{4-}\textbf,
+        beforeskip = 1.0ex plus 0.2ex minus .2ex,
+        afterskip = 1.0ex plus 0.2ex minus .2ex,
+    },
+    subsection = {
+        name = {,.},
+        number = \arabic{subsection},
+        format = \songti\zihao{5}\textbf,
+        beforeskip = 1.0ex plus 0.2ex minus .2ex,
+        afterskip = 1.0ex plus 0.2ex minus .2ex,
+    },
+    subsubsection = {
+        name = {(,)},
+        number = \arabic{subsubsection},
+        format = \songti\zihao{5},
+        beforeskip = 1.0ex plus 0.2ex minus .2ex,
+        afterskip = 1.0ex plus 0.2ex minus .2ex,
+    },
+}
+
+% 页边距
+\usepackage{geometry}
+\geometry{left=2.6cm,right=2.6cm,top=1.8cm,bottom=1.8cm}
+
+% 页眉页脚
+\pagestyle{plain}
+\lfoot{}
+
+% 图例设置
+\renewcommand{\fnum@figure}{{\songti\zihao{5}\textbf{图\thefigure}}}
+\renewcommand{\fnum@table}{{\songti\zihao{5}\textbf{表\thetable}}}
+\let\ocaption\caption
+\renewcommand{\caption}[2][]{\ocaption[#1]{{\songti\zihao{5}\textbf{#2}}}}
+\renewcommand{\@makecaption}[2]{%
+\vskip\abovecaptionskip%
+\sbox\@tempboxa{#1\quad #2}%
+\ifdim \wd\@tempboxa >\hsize
+#1\quad #2\par%
+\else
+\global \@minipagefalse
+\hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+\fi
+\vskip\belowcaptionskip}
+
+
