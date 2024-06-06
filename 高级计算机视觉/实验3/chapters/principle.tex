@@ -1,0 +1,115 @@
+\section{实验原理}
+
+本章节将介绍实验中所用到的一些基本原理，包括Tiny Image表征、K-means聚类算法、KNN分类器、Bag of Words模型、倒排索引等。
+
+\subsection{Tiny Image表征}
+
+Tiny Image是一种简单的图像表征方法，它将图像缩放至固定大小，然后将图像展开为一个向量。Tiny Image表征的优点是简单易实现，但缺点是信息量较少，不适用于复杂的图像分类任务。
+
+具体来说，Tiny Image表征算法可以表示为公式\ref{eq:tiny_image}：
+
+\begin{equation}
+    \label{eq:tiny_image}
+    I_{tiny} = \text{Flatten}(\text{Resize}(I, (H_{out}, W_{out})))
+\end{equation}
+
+其中，$I$为原始图像，$I_{tiny}$为Tiny Image表征，$\text{Resize}(\cdot)$为图像缩放函数，$\text{Flatten}(\cdot)$为展平函数，将张量展平为一维向量，$H_{out}$和$W_{out}$为输出图像的高度和宽度。
+
+一般来说，Tiny Image表征的大小为$16 \times 16$或$32 \times 32$。缩放的策略可以是不保持长宽比直接拉伸，也可以是保持长宽比，之后中心裁剪。最后，还需要对向量进行归一化处理，以投影到单位球面的度量空间上。
+
+\subsection{K-means聚类算法}
+
+K-means聚类算法是一种常见的无监督学习算法，用于将数据集划分为K个簇。K-means算法的目标是最小化数据点与其所属簇中心的距离之和，即最小化目标函数\ref{eq:kmeans}：
+
+\begin{equation}
+    \label{eq:kmeans}
+    \min_{\mu_1, \mu_2, \ldots, \mu_K} \sum_{i=1}^{N} \min_{j} ||x_i - \mu_j||^2
+\end{equation}
+
+其中，$N$为数据点的数量，$x_i$为第$i$个数据点，$\mu_j$为第$j$个簇的中心点。该函数的含义是，通过学习合理的簇中心，之后对于每个数据点，找到其所属的最近的簇中心，使得数据点与簇中心的距离之和最小。
+
+K-means算法的步骤可表示为算法\ref{alg:kmeans}：
+
+% 用数学公式表示
+\begin{algorithm}[H]
+    \caption{K-means算法}
+    \label{alg:kmeans}
+    \begin{algorithmic}[1] %每行显示行号
+        \Require 数据集$X$，簇的数量$K$
+        \Ensure 簇中心$\mu_1, \mu_2, \ldots, \mu_K$
+        \State 随机初始化簇中心$\mu_1, \mu_2, \ldots, \mu_K$
+        \While{簇中心未收敛}
+            \State 计算每个数据点$x_i$与簇中心$\mu_j$的距离$d_{ij}=||x_i - \mu_j||^2$
+            \State 将数据点$x_i$划分到最近的簇中心$\mu_j$，$z_i = \arg\min_j d_{ij}$
+            \State 更新簇中心$\mu_j = \frac{1}{|z_i|} \sum_{i=1}^{N} z_i x_i$
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+通过上述算法，可以得到数据集$X$的簇中心$\mu_1, \mu_2, \ldots, \mu_K$，从而实现数据集的聚类。虽然K-means算法简单易实现，但是需要事先指定簇的数量$K$，且对初始簇中心的选择较为敏感。
+
+\subsection{KNN分类器}
+
+KNN分类器是一种常见的监督学习算法，用于对数据点进行分类。KNN算法的基本思想是，对于一个新的数据点，找到与其最近的K个数据点，然后根据这K个数据点的类别，通过投票的方式决定新数据点的类别。具体来说，KNN算法的步骤可表示为算法\ref{alg:knn}：
+
+\begin{algorithm}[H]
+    \caption{KNN分类器}
+    \label{alg:knn}
+    \begin{algorithmic}[1] %每行显示行号
+        \Require 训练数据集$X$，训练数据集的标签$Y$，新数据点$x$，K值
+        \Ensure 新数据点$x$的类别
+        \State 计算新数据点$x$与训练数据集中每个数据点$x_i$的距离$d_i=||x - x_i||$
+        \State 找到与新数据点$x$最近的K个数据点$x_{i_1}, x_{i_2}, \ldots, x_{i_K}$
+        \State 计算K个数据点的类别$y_{i_1}, y_{i_2}, \ldots, y_{i_K}$
+        \State 通过投票的方式决定新数据点$x$的类别
+    \end{algorithmic}
+\end{algorithm}
+
+其中投票的方式可以是简单多数投票，也可以是加权投票。KNN算法的优点是简单易实现，且对于多分类问题效果较好，但缺点是计算量较大，且需要事先指定K值。KNN分类器是一种惰性学习算法，即在训练阶段不需要学习，只需要存储训练数据集，然后在预测阶段对新数据点进行分类。然而，KNN算法依赖于距离度量，因此对于高维数据集效果较差。
+
+\subsection{Bag of Visual Words模型}
+
+在介绍Bag of Visual Words模型之前，先简单了解一下词袋模型（Bag of Words）。词袋模型是一种常见的文本表征方法，它通过统计文本中每个词的出现次数，将文本表示为一个词频向量。词袋模型的优点是简单易实现，但缺点是忽略了词语的顺序，且无法处理语义信息。受到词袋模型的启发，Bag of Visual Words模型将图像表示为一个视觉词频向量，Bag of Visual Words模型可以表示为算法\ref{alg:bovw}：
+
+\begin{algorithm}[H]
+    \caption{Bag of Visual Words模型}
+    \label{alg:bovw}
+    \begin{algorithmic}[1] %每行显示行号
+        \Require 图像数据集$X=\{x_1,x_2,\dots,x_N\}$，KNN分类器$\text{KNN}(\cdot)$
+        \Ensure $X$的类别$Y=\{y_1,y_2,\dots,y_N\}$
+        \State 通过SIFT等算法提取图像数据集$X$的所有局部特征$F$，$f_i=f(x_i)$, 其中$f_i=\{f_{i1},f_{i2},\dots,f_{iM}\}$，$F=f_1\cup f_2\cup \dots \cup f_N$
+        \State 对特征集合$F$进行聚类，得到视觉词典$V=\{v_1,\dots,v_K\}, K\ll N$
+        \State $Y=\emptyset$
+        \For {$x_i\in X$}
+            \State 提取特征向量$f'_i=\{f'_{i1},f'_{i2},\dots,f'_{iM}\}$
+            \State 量化局部特征到视觉词典中的最近词，得到集合$V_i'= \{v_{i1},v_{i2},\dots,v_{iM}\}$，其中$v_{ij}\in V$
+            \State 统计词频向量$H=\{h_1,h_2,\dots,h_N\}$，其中$h_i=\text{Count}(V_i', v_{i})$
+            \State 使用KNN分类器对词频向量$H_i$进行分类，$y_i=\text{KNN}(H_i)$
+            \State $Y=Y \cup y_i$
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+其中，$F$是所有图像局部特征集合的交集，$V$是$F$的聚类结果，$v_{ij}=arg\min_{v_k}||f_{ij}-v_k||$是词典中距离特征向量$f_{ij}$最近的词，$\text{Count}(A, a)$是统计函数，用于统计集合$A$中元素$a$的个数。Bag of Visual Words模型的优点是简单易实现，然而忽略了特征之间的空间关系。
+
+\subsection{倒排索引}
+
+倒排索引是一种常见的信息检索技术，用于快速查找包含某个关键词的文档。倒排索引的基本思想是，对于每个关键词，记录包含该关键词的文档列表。倒排索引的优点是快速查找，但缺点是需要较大的存储空间。倒排索引的构建过程可表示为算法\ref{alg:inverted_index}：
+
+\begin{algorithm}[H]
+    \caption{倒排索引}
+    \label{alg:inverted_index}
+    \begin{algorithmic}[1] %每行显示行号
+        \Require 文档集合$D=\{d_1,d_2,\dots,d_N\}$
+        \Ensure 倒排索引$I$
+        \State $I=\emptyset$
+        \For {$d_i\in D$}
+            \State 提取文档$d_i$的关键词集合$K_i$
+            \For {$k_j\in K_i$}
+                \State $I[k_j]=I[k_j]\cup d_i$
+            \EndFor
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+通过上述算法，可以得到文档集合$D$的倒排索引$I$，可以快速通过关键词查找包含该关键词的文档。同样地，关键词集合可以用视觉词袋代替，从而实现图像快速检索。

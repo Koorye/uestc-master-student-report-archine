@@ -1,0 +1,198 @@
+\appendix
+
+\section{完整代码}
+
+\label{appendix:code}
+
+% data_transform.py
+\texttt{data\_transform.py}
+\begin{lstlisting}[style=Python]
+'''
+Contains functions with different data transforms
+'''
+
+import numpy as np
+import torchvision.transforms as transforms
+
+from typing import Tuple
+
+
+def get_fundamental_transforms(inp_size: Tuple[int, int],
+                               pixel_mean: np.array,
+                               pixel_std: np.array) -> transforms.Compose:
+    '''
+    Returns the core transforms needed to feed the images to our model
+
+    Args:
+    - inp_size: tuple denoting the dimensions for input to the model
+    - pixel_mean: the mean  of the raw dataset
+    - pixel_std: the standard deviation of the raw dataset
+    Returns:
+    - fundamental_transforms: transforms.Compose with the fundamental transforms
+    '''
+    return transforms.Compose([
+        transforms.Resize(inp_size),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=pixel_mean, std=pixel_std),
+    ])
+
+
+def get_data_augmentation_transforms(inp_size: Tuple[int, int],
+                                     pixel_mean: np.array,
+                                     pixel_std: np.array) -> transforms.Compose:
+    '''
+    Returns the data augmentation + core transforms needed to be applied on the
+    train set
+
+    Args:
+    - inp_size: tuple denoting the dimensions for input to the model
+    - pixel_mean: the mean  of the raw dataset
+    - pixel_std: the standard deviation of the raw dataset
+    Returns:
+    - aug_transforms: transforms.Compose with all the transforms
+    '''
+    return transforms.Compose([
+        transforms.RandomResizedCrop(inp_size, scale=(0.8, 1.0)),
+        # transforms.Resize(inp_size),
+        transforms.RandomHorizontalFlip(),
+        # transforms.RandomVerticalFlip(),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=pixel_mean, std=pixel_std),
+    ])
+\end{lstlisting}
+
+\texttt{simple\_net.py}
+\begin{lstlisting}[style=Python]
+import torch
+import torch.nn as nn
+
+
+class SimpleNet(nn.Module):
+    def __init__(self):
+        '''
+        Init function to define the layers and loss function
+
+        Note: Use 'sum' reduction in the loss_criterion. Read Pytorch documention
+        to understand what it means
+        '''
+        super().__init__()
+
+        self.cnn_layers = nn.Sequential(
+            nn.Conv2d(1, 10, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3), padding=0),
+            nn.ReLU(),
+            nn.Conv2d(10, 20, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3), padding=0),
+            nn.ReLU(),
+        )
+        self.fc_layers = nn.Sequential(
+            nn.Linear(500, 100),
+            nn.Linear(100, 15),
+        )
+
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        '''
+        Perform the forward pass with the net
+
+        Args:
+        -   x: the input image [Dim: (N,C,H,W)]
+        Returns:
+        -   y: the output (raw scores) of the net [Dim: (N,15)]
+        '''
+        x = self.cnn_layers(x)
+        x = x.view(x.size(0), -1)
+        return self.fc_layers(x)
+\end{lstlisting}
+
+\texttt{dl\_utils.py}
+\begin{lstlisting}[style=Python]
+'''
+Utilities to be used along with the deep model
+'''
+
+import torch
+
+
+def predict_labels(model: torch.nn.Module, x: torch.tensor) -> torch.tensor:
+    '''
+    Perform the forward pass and extract the labels from the model output
+
+    Args:
+    -   model: a model (which inherits from nn.Module)
+    -   x: the input image [Dim: (N,C,H,W)]
+    Returns:
+    -   predicted_labels: the output labels [Dim: (N,)]
+    '''
+    logits = model(x)
+    _, predicted_labels = torch.max(logits, 1)
+    return predicted_labels
+
+
+def compute_loss(model: torch.nn.Module,
+                 model_output: torch.tensor,
+                 target_labels: torch.tensor,
+                 is_normalize: bool = True) -> torch.tensor:
+    '''
+    Computes the loss between the model output and the target labels
+
+    Args:
+    -   model: a model (which inherits from nn.Module)
+    -   model_output: the raw scores output by the net
+    -   target_labels: the ground truth class labels
+    -   is_normalize: bool flag indicating that loss should be divided by the batch size
+    Returns:
+    -   the loss value
+    '''
+    # loss = torch.nn.functional.cross_entropy(model_output, target_labels, reduction='sum')
+    targets = torch.nn.functional.one_hot(target_labels, num_classes=model_output.size(1))
+    loss = - torch.sum(targets * torch.log_softmax(model_output, dim=1), dim=1).sum()
+
+    if is_normalize:
+        loss /= model_output.size(0)
+    
+    return loss
+\end{lstlisting}
+
+\texttt{simple\_net\_dropout.py}
+\begin{lstlisting}[style=Python]
+import torch
+import torch.nn as nn
+
+
+class SimpleNetDropout(nn.Module):
+    def __init__(self):
+        '''
+        Init function to define the layers and loss function
+
+        Note: Use 'sum' reduction in the loss_criterion. Read Pytorch documention
+        to understand what it means
+        '''
+        super().__init__()
+        self.cnn_layers = nn.Sequential(
+            nn.Conv2d(1, 10, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3), padding=0),
+            nn.ReLU(),
+            nn.Conv2d(10, 20, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3), padding=0),
+            nn.ReLU(),
+        )
+        self.fc_layers = nn.Sequential(
+            nn.Linear(500, 100),
+            nn.Dropout(p=0.0),
+            nn.Linear(100, 15),
+        )
+
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        '''
+        Perform the forward pass with the net
+
+        Args:
+        -   x: the input image [Dim: (N,C,H,W)]
+        Returns:
+        -   y: the output (raw scores) of the net [Dim: (N,15)]
+        '''
+        x = self.cnn_layers(x)
+        x = x.view(x.size(0), -1)
+        return self.fc_layers(x)
+\end{lstlisting}
